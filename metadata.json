@@ -1,0 +1,6 @@
+{
+  "name": "BizSocial AI",
+  "description": "A modern SaaS application for generating social media posts and responding to customer reviews using Google Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
