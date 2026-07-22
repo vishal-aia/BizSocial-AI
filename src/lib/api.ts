@@ -13,44 +13,44 @@ export interface ReviewResponseParams {
   starRating: number;
 }
 
+const getHeaders = () => {
+  const token = localStorage.getItem('bizsocial_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 export async function generatePosts(params: PostGenerationParams) {
   const response = await fetch('/api/generate-posts', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: getHeaders(),
     body: JSON.stringify(params)
   });
-
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to generate posts');
   }
-
   return response.json();
 }
 
 export async function generateReviewResponses(params: ReviewResponseParams) {
   const response = await fetch('/api/generate-review-response', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: getHeaders(),
     body: JSON.stringify(params)
   });
-
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to generate review responses');
   }
-
   return response.json();
 }
 
 export async function createRazorpayOrder(tier: 'pro' | 'agency') {
   const response = await fetch('/api/create-razorpay-order', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify({ tier })
   });
   if (!response.ok) {
@@ -68,7 +68,7 @@ export async function verifyRazorpayPayment(data: {
 }) {
   const response = await fetch('/api/verify-razorpay-payment', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getHeaders(),
     body: JSON.stringify(data)
   });
   if (!response.ok) {
@@ -78,15 +78,51 @@ export async function verifyRazorpayPayment(data: {
   return response.json();
 }
 
-export async function getSubscriptionStatus(currentTier: string) {
+export async function getSubscriptionStatus() {
   const response = await fetch('/api/subscription-status', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ currentTier })
+    headers: getHeaders(),
   });
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to get subscription status');
+  }
+  return response.json();
+}
+
+export async function login(data: any) {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to login');
+  }
+  return response.json();
+}
+
+export async function signup(data: any) {
+  const response = await fetch('/api/auth/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to signup');
+  }
+  return response.json();
+}
+
+export async function fetchUser() {
+  const response = await fetch('/api/auth/me', {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error('Not authenticated');
   }
   return response.json();
 }

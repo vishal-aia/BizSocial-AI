@@ -1,10 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getSubscriptionStatus } from '../lib/api';
+import { fetchUser } from '../lib/api';
 
 export type SubscriptionTier = 'free' | 'pro' | 'agency';
 
-interface AppContextType {
+interface User {
+  id: number;
+  email: string;
+  tier: SubscriptionTier;
   credits: number;
+}
+
+interface AppContextType {
+  user: User | null;
+  setUser: (user: User | null) => void;
+  credits: number;
+  setCredits: (credits: number) => void;
   deductCredit: () => boolean;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
@@ -17,22 +27,29 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [credits, setCredits] = useState(() => {
-    const saved = localStorage.getItem('bizsocial_credits');
-    return saved ? parseInt(saved, 10) : 5;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [credits, setCredits] = useState(5);
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('free');
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('bizsocial_theme') as 'light' | 'dark') || 'dark';
   });
+
   const [isUpgradeModalOpen, setUpgradeModalOpen] = useState(false);
   
-  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>(() => {
-    return (localStorage.getItem('bizsocial_tier') as SubscriptionTier) || 'free';
-  });
-
   useEffect(() => {
-    localStorage.setItem('bizsocial_credits', credits.toString());
-  }, [credits]);
+    const token = localStorage.getItem('bizsocial_token');
+    if (token) {
+      fetchUser().then(data => {
+        setUser(data.user);
+        setCredits(data.user.credits);
+        setSubscriptionTier(data.user.tier);
+      }).catch(err => {
+        console.error("Auth failed:", err);
+        localStorage.removeItem('bizsocial_token');
+      });
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('bizsocial_theme', theme);
@@ -42,10 +59,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
-
-  useEffect(() => {
-    localStorage.setItem('bizsocial_tier', subscriptionTier);
-  }, [subscriptionTier]);
 
   const deductCredit = () => {
     if (subscriptionTier !== 'free') {
@@ -67,7 +80,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider
       value={{
+        user,
+        setUser,
         credits,
+        setCredits,
         deductCredit,
         theme,
         toggleTheme,

@@ -12,7 +12,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 
 export const DashboardLayout: React.FC = () => {
-  const { credits, setUpgradeModalOpen, subscriptionTier } = useAppContext();
+  const { user, credits, setUpgradeModalOpen, subscriptionTier } = useAppContext();
 
   const navItems = [
     { name: 'Home', path: '/', icon: Home, exact: true },
@@ -114,8 +114,8 @@ export const DashboardLayout: React.FC = () => {
                 Remaining Credits: {subscriptionTier !== 'free' ? <Infinity className="w-3 h-3 text-emerald-400" /> : `${credits}/5`}
               </span>
             </div>
-            <div className="flex items-center justify-center w-8 h-8 text-xs font-bold border rounded-full bg-slate-800 border-white/20">
-              JD
+            <div className="flex items-center justify-center w-8 h-8 text-xs font-bold border rounded-full uppercase bg-slate-800 border-white/20">
+              {user?.email ? user.email.substring(0,2) : 'ME'}
             </div>
           </div>
         </header>
